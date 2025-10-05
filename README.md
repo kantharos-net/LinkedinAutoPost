@@ -1,4 +1,4 @@
-# LinkedinAutoPost Frontend
+# LinkedinAutoPost 
 
 This repository now contains a Next.js 14 (App Router) frontend for the Flask-based LinkedIn auto-poster backend. The UI provides dashboards, a GPT-enabled composer, scheduling tools, job monitoring, analytics, and runtime settings management.
 
