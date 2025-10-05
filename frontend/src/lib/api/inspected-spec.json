@@ -1,0 +1,109 @@
+{
+  "info": {
+    "title": "LinkedIn AutoPoster API (inferred)",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Default local server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Health probe",
+        "responses": {
+          "200": {
+            "description": "Plain text hello world",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/makePostContent": {
+      "post": {
+        "summary": "Generate LinkedIn post content via OpenAI",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "skills": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["description", "skills"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated post content as plain text",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload"
+          }
+        }
+      }
+    },
+    "/postPost": {
+      "post": {
+        "summary": "Publish a LinkedIn post using stored LinkedIn tokens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": ["text"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "LinkedIn API response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [],
+  "components": {}
+}
