@@ -1,6 +1,6 @@
 import json
 import webbrowser
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, urlencode
 
 import requests
 
@@ -62,15 +62,14 @@ class LinkedIn:
         self.__user_info = user_info
 
     def get_auth_url(self) -> str:
-        """Return the LinkedIn OAuth authorization URL (does not open browser)."""
+        """Return the LinkedIn OAuth authorization URL without making a network call."""
         params = {
             "response_type": "code",
             "client_id": config.credentials.get("client_id"),
             "redirect_uri": config.credentials.get("redirect_uri"),
             "scope": "w_member_social openid email profile",
         }
-        response = requests.get(f"{LINKEDIN_API_URL}/authorization", params=params)
-        return response.url
+        return f"{LINKEDIN_API_URL}/authorization?{urlencode(params)}"
 
     def set_token(self, token: str) -> None:
         """Accept an existing access token, rebuild headers, and fetch user info if not cached."""
