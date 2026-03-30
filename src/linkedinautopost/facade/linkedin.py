@@ -61,7 +61,7 @@ class LinkedIn:
         user_info = response.json()
         self.__user_info = user_info
 
-    def get_auth_url(self) -> str:
+    def get_auth_url(self, state: str = "") -> str:
         """Return the LinkedIn OAuth authorization URL without making a network call."""
         params = {
             "response_type": "code",
@@ -69,6 +69,8 @@ class LinkedIn:
             "redirect_uri": config.credentials.get("redirect_uri"),
             "scope": "w_member_social openid email profile",
         }
+        if state:
+            params["state"] = state
         return f"{LINKEDIN_API_URL}/authorization?{urlencode(params)}"
 
     def set_token(self, token: str) -> None:
