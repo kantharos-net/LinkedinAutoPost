@@ -61,6 +61,32 @@ class LinkedIn:
         user_info = response.json()
         self.__user_info = user_info
 
+    def get_auth_url(self) -> str:
+        """Return the LinkedIn OAuth authorization URL (does not open browser)."""
+        params = {
+            "response_type": "code",
+            "client_id": config.credentials.get("client_id"),
+            "redirect_uri": config.credentials.get("redirect_uri"),
+            "scope": "w_member_social openid email profile",
+        }
+        response = requests.get(f"{LINKEDIN_API_URL}/authorization", params=params)
+        return response.url
+
+    def set_token(self, token: str) -> None:
+        """Accept an existing access token, rebuild headers, and fetch user info if not cached."""
+        self.__access_token = token
+        self.get_headers()
+        if not self.__user_info:
+            self.get_user_info()
+
+    def is_authenticated(self) -> bool:
+        """Return True if an access token is present."""
+        return bool(self.__access_token)
+
+    def get_user_name(self) -> str:
+        """Return the authenticated user's display name, or empty string if not set."""
+        return self.__user_info.get("name", "") if self.__user_info else ""
+
     def post(self, message):
         post_data = {
             "author": f"urn:li:person:{self.__user_info['sub']}",
