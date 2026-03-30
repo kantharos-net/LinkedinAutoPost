@@ -1,4 +1,8 @@
 [credentials]
 client_id = ""
 client_secret = ""
-redirect_uri = ""
+redirect_uri = "http://localhost:8080/linkedin/callback"
+
+[app]
+frontend_url = "http://localhost:3000"
+secret_key = "change-me-in-production"
