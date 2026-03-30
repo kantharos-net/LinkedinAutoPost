@@ -84,6 +84,10 @@ class LinkedIn:
         """Return True if an access token is present."""
         return bool(self.__access_token)
 
+    def get_token(self) -> str:
+        """Return the current access token."""
+        return self.__access_token
+
     def get_user_name(self) -> str:
         """Return the authenticated user's display name, or empty string if not set."""
         return self.__user_info.get("name", "") if self.__user_info else ""

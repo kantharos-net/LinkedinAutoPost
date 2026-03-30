@@ -1,6 +1,4 @@
-import secrets
-
-from flask import Flask, request, redirect, session
+from flask import Flask, request, redirect
 from flask_cors import CORS
 
 from linkedinautopost.facade.chat_gpt import ChatGPT
@@ -34,28 +32,17 @@ def hello():
 @app.route("/login")
 def login():
     """Redirect the user's browser to the LinkedIn OAuth consent screen."""
-    state_token = secrets.token_urlsafe(16)
-    session["oauth_state"] = state_token
-    return redirect(linkedin_handler.get_auth_url(state=state_token))
+    return redirect(linkedin_handler.get_auth_url())
 
 
 @app.route("/linkedin/callback")
 def linkedin_callback():
     """Handle LinkedIn OAuth callback, store token, redirect to frontend."""
-    # Verify CSRF state parameter
-    received_state = request.args.get("state")
-    expected_state = session.pop("oauth_state", None)
-    if received_state != expected_state:
-        return redirect(f"{FRONTEND_URL}/auth/callback?error=state_mismatch")
-
     authorization_code = request.args.get("code")
     if not authorization_code:
         return redirect(f"{FRONTEND_URL}/auth/callback?error=no_code")
-
     linkedin_handler.get_access_token(authorization_code)
-    # get_access_token already sets __access_token, __headers, and __user_info
-    # We expose the token to the frontend so it can attach it to future requests.
-    token = linkedin_handler._LinkedIn__access_token  # read private attr for redirect
+    token = linkedin_handler.get_token()
     return redirect(f"{FRONTEND_URL}/auth/callback?token={token}")
 
 
