@@ -1,100 +1,135 @@
-# LinkedinAutoPost Frontend
+# LinkedinAutoPost
 
-This repository now contains a Next.js 14 (App Router) frontend for the Flask-based LinkedIn auto-poster backend. The UI provides dashboards, a GPT-enabled composer, scheduling tools, job monitoring, analytics, and runtime settings management.
+A full-stack application that uses GPT to generate LinkedIn posts and publishes them directly via the LinkedIn API. Includes a Flask backend for OAuth + AI generation and a Next.js 15 frontend for composing, scheduling, and tracking posts.
 
-> **Heads up:** All frontend source lives inside the [`frontend/`](frontend) directory. For example, the main dashboard screen is at [`frontend/app/page.tsx`](frontend/app/page.tsx) and the API client is at [`frontend/src/lib/api/client.ts`](frontend/src/lib/api/client.ts). If you open the repo at the root, be sure to expand the `frontend` folder to browse the Next.js codebase.
+## Features
 
-## Architecture & Component Plan
+- **LinkedIn OAuth** — secure login flow with token handoff to the frontend
+- **GPT-powered composer** — generates post drafts from a description and skill tags
+- **One-click publishing** — posts directly to LinkedIn through the API
+- **Post history & analytics** — track past posts and engagement trends
+- **Job scheduler** — calendar view with upcoming post queue
+- **Settings panel** — configure API URL, bearer token, timezone, and more
 
-- **App Shell** – `app/layout.tsx` renders the header (`Header`), responsive sidebar (`Sidebar`), and global providers (`AppProviders`, `BootstrapClient`). Tailwind + shadcn/ui components standardize styling and accessibility.
-- **State & Data** – React Query handles server mutations (`apiClient`) while Zustand stores (`settings`, `posts`) persist UI preferences and local job history. Demo data is seeded on the client for richer charts.
-- **Pages**
-  - `app/page.tsx` (Dashboard) summarises KPIs, charts, and recent jobs.
-  - `app/composer/page.tsx` drives the GPT generation form, previews, scheduling, and publishing actions.
-  - `app/scheduler/page.tsx` displays a calendar heat map and upcoming post list.
-  - `app/jobs/page.tsx` lists jobs, filters, and a drawer for logs with retry actions.
-  - `app/history/page.tsx` surfaces analytics, trend charts, and a searchable activity log.
-  - `app/settings/page.tsx` lets operators change API base URL/token, defaults, timezone, and enable SSE logs.
-- **UI System** – `src/components/ui/*` hosts shadcn-inspired primitives (buttons, cards, dialogs, tables, etc.) to keep pages composable, themeable, and keyboard accessible.
-- **API Layer** – `src/lib/api/client.ts` encapsulates fetch with retries, error normalization, and optional SSE helpers. `inspected-spec.json` documents the inferred Flask endpoints.
-- **Testing** – Vitest validates schemas and error normalization, while Playwright specs cover the main scheduling flow and job retry UX. Optional MSW handlers (`mocks/handlers.ts`) aid local development.
+## Tech Stack
 
-## API Discovery Report
+| Layer | Stack |
+|-------|-------|
+| Backend | Python, Flask, Flask-CORS, OpenAI SDK |
+| Frontend | Next.js 15 (App Router), React 19, TypeScript |
+| State | Zustand + React Query |
+| Styling | Tailwind CSS |
+| Forms | React Hook Form + Zod |
+| Animation | Framer Motion |
+| Testing | Vitest, Playwright |
 
-**Backend files inspected**
+## Project Structure
 
-- `src/linkedinautopost/__init__.py` – Flask app routes (`/`, `/login`, `/linkedin/callback`, `/makePostContent`, `/postPost`).
-- `src/linkedinautopost/facade/chat_gpt.py` – OpenAI usage for `/makePostContent` response shape.
-- `src/linkedinautopost/facade/linkedin.py` – LinkedIn publishing logic invoked by `/postPost`.
+```
+├── src/linkedinautopost/   # Flask backend
+│   ├── __init__.py         # App routes
+│   ├── facade/
+│   │   ├── chat_gpt.py     # OpenAI integration
+│   │   └── linkedin.py     # LinkedIn API client
+│   └── utils/config.py     # Dynaconf configuration
+├── config/                 # Backend config files
+├── frontend/               # Next.js frontend
+│   ├── app/                # App Router pages
+│   │   ├── page.tsx        # Dashboard
+│   │   ├── composer/       # GPT post composer
+│   │   ├── scheduler/      # Calendar scheduler
+│   │   ├── jobs/           # Job monitor
+│   │   ├── history/        # Analytics & post history
+│   │   ├── settings/       # App settings
+│   │   └── auth/callback/  # OAuth callback handler
+│   └── src/
+│       ├── components/     # UI components
+│       └── lib/
+│           ├── api/        # Fetch client + API spec
+│           ├── stores/     # Zustand stores
+│           └── schemas/    # Zod schemas
+└── tests/                  # Backend tests
+```
 
-**Endpoints derived**
+## Backend Setup
 
-| Method | Path | Request | Response |
-| ------ | ---- | ------- | -------- |
-| GET | `/` | – | `"Hello, World!"` plain text |
-| POST | `/makePostContent` | `{ description: string, skills: string[] }` | `text/plain` GPT content |
-| POST | `/postPost` | `{ text: string }` | LinkedIn API JSON passthrough |
+**Requirements:** Python 3.10+, [PDM](https://pdm-project.org/)
 
-Full machine-readable summary lives at `frontend/src/lib/api/inspected-spec.json`.
+```bash
+pdm install
+```
 
-**Auth scheme** – The backend does not enforce authentication. The frontend supports configuring a Bearer token for future parity and includes it when provided.
+Create a `config/credentials.toml` with your LinkedIn app credentials:
 
-**Error shape** – Flask returns raw text or LinkedIn/OpenAI JSON. The client normalizes these into `{ message, status, requestId?, details }`.
+```toml
+[credentials]
+client_id = "YOUR_CLIENT_ID"
+client_secret = "YOUR_CLIENT_SECRET"
+redirect_uri = "http://localhost:8080/linkedin/callback"
 
-**Streaming** – No SSE endpoint exists. The UI exposes a toggle and `createSseStream` helper for future `/jobs/logs` SSE support with graceful fallback.
+[app]
+secret_key = "your-secret-key"
+frontend_url = "http://localhost:3000"
+```
 
-**Assumptions & gaps**
+Add your OpenAI key to environment or config:
 
-- Job history, scheduling, and analytics endpoints are absent. The UI persists this information locally via Zustand; MSW mocks can simulate backend responses.
-- GPT generation returns plain text, so the frontend converts it into rich previews without token usage metadata.
-- Publishing immediately calls `/postPost`; success is inferred if the response resolves without error.
+```bash
+export OPENAI_API_KEY="sk-..."
+```
 
-## Getting Started
+Run the server:
+
+```bash
+pdm run linkedinautopost
+# Starts on http://localhost:8080
+```
+
+## Frontend Setup
 
 ```bash
 cd frontend
 npm install
-npm run dev
 ```
 
-The app reads its base URL and token from runtime configuration:
+Create `frontend/.env.local`:
 
-- `NEXT_PUBLIC_API_BASE_URL` (see `.env.local.example`)
-- `NEXT_PUBLIC_API_TOKEN` (optional) – also editable inside **Settings**.
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+```
+
+Run the dev server:
+
+```bash
+npm run dev
+# Opens on http://localhost:3000
+```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/login` | Redirect to LinkedIn OAuth |
+| `GET` | `/linkedin/callback` | OAuth callback, issues token |
+| `GET` | `/me` | Verify session, return user info |
+| `POST` | `/makePostContent` | Generate post via GPT |
+| `POST` | `/postPost` | Publish post to LinkedIn |
+
+All protected endpoints require `Authorization: Bearer <token>`.
 
 ## Testing
 
 ```bash
-cd frontend
-npm run lint
-npm run test        # Vitest unit tests
-npm run test:e2e    # Playwright (ensure the Next.js dev server is running)
+# Backend
+pdm run pytest
+
+# Frontend unit tests
+cd frontend && npm test
+
+# Frontend e2e
+cd frontend && npm run test:e2e   # requires dev server running
 ```
 
-## Optional Local Mocking
+## License
 
-`frontend/mocks/handlers.ts` defines MSW handlers for `/makePostContent` and `/postPost`, enabling offline development and deterministic Playwright runs.
-
-## Project Layout
-
-```
-frontend/
-  app/                  # App Router pages
-  src/
-    components/         # shadcn/ui primitives & layout
-    lib/
-      api/              # inspected spec + fetch client
-      stores/           # Zustand stores
-      schemas/          # Zod schemas
-      hooks/            # custom hooks
-    tests/              # Vitest suites
-  tests/e2e/            # Playwright specs
-```
-
-## Deployment Notes
-
-- Tailwind CSS and shadcn/ui ensure responsive, WCAG-friendly UI components.
-- React Query isolates network access with retries and unified error handling.
-- Zustand + persist keeps user settings and job state in localStorage; no secrets are stored in cookies.
-- Charts (Recharts) and icons (lucide-react) provide analytics visuals consistent with the dashboard aesthetic.
-
+MIT
