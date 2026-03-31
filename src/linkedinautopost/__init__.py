@@ -66,8 +66,11 @@ def make_post_content():
         return {"error": "Missing token"}, 401
     linkedin_handler.set_token(token)
 
-    description = request.json["description"]
-    skills = request.json["skills"]
+    body = request.json
+    if not body or "description" not in body or "skills" not in body:
+        return {"error": "Missing required fields: description, skills"}, 400
+    description = body["description"]
+    skills = body["skills"]
     answer = gpt_handler.ask_question(description, skills)
     return answer
 
@@ -79,6 +82,9 @@ def post_post():
         return {"error": "Missing token"}, 401
     linkedin_handler.set_token(token)
 
-    post_content = request.json["text"]
+    body = request.json
+    if not body or "text" not in body:
+        return {"error": "Missing required field: text"}, 400
+    post_content = body["text"]
     response = linkedin_handler.post(post_content)
     return response

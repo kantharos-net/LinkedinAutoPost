@@ -15,7 +15,7 @@ export default function LandingPage() {
     <div className="relative flex min-h-[calc(100vh-56px)] flex-col items-center justify-center overflow-hidden px-5 py-16">
       {/* Animated background blobs */}
       <div
-        className="pointer-events-none absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
+        className="pointer-events-none absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
         style={{ animation: "pulse 8s ease-in-out infinite" }}
       />
       <div

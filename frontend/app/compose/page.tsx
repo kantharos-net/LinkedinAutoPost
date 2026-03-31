@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +36,7 @@ export default function ComposePage() {
     }
   }, [isAuthenticated, router]);
 
-  const client = createApiClient(API_BASE, token);
+  const client = useMemo(() => createApiClient(API_BASE, token), [token]);
 
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<ComposerValues>({
     resolver: zodResolver(composerSchema),
@@ -189,7 +189,7 @@ export default function ComposePage() {
               <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
                 <Button
                   variant="ghost"
-                  onClick={() => generateMutation.mutate(getValues())}
+                  onClick={handleSubmit((values) => generateMutation.mutate(values))}
                   loading={generateMutation.isPending}
                 >
                   <RefreshCw size={14} />
