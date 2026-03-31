@@ -1,31 +1,21 @@
 import { z } from "zod";
 
 export const composerSchema = z.object({
-  title: z.string().min(3, "Title is required"),
-  tags: z.string().optional(),
-  channel: z.string().min(1, "Select a channel"),
-  model: z.string(),
-  temperature: z.coerce.number().min(0).max(2),
-  maxTokens: z.coerce.number().min(64).max(2048),
-  prompt: z.string().min(20, "Provide enough context for GPT"),
-  systemPrompt: z.string().optional(),
-  autoEnhance: z.boolean().default(true),
-  content: z.string().optional(),
-  scheduledFor: z.string().optional()
+  description: z.string().min(1, "Description is required"),
+  tags: z.string().default(""),
 });
 
-export type ComposerSchema = typeof composerSchema;
+export type ComposerValues = z.infer<typeof composerSchema>;
 
-export const composerDefaultValues = {
-  title: "",
+export const composerDefaults: ComposerValues = {
+  description: "",
   tags: "",
-  channel: "linkedin",
-  model: "gpt-3.5-turbo",
-  temperature: 0.7,
-  maxTokens: 512,
-  prompt: "",
-  systemPrompt: "",
-  autoEnhance: true,
-  content: "",
-  scheduledFor: ""
 };
+
+/** Parse comma-separated tags string into a skills array for the API. */
+export function parseTags(tags: string): string[] {
+  return tags
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
